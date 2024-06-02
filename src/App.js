@@ -11,19 +11,19 @@ function App() {
     const [darkMode, setDarkMode] = useState(false);
 
     const toggleDarkMode = () => {
-        setDarkMode(!darkMode);
-        if (darkMode) {
-            document.body.classList.remove('dark-mode');
-        } else {
-            document.body.classList.add('dark-mode');
-        }
+        setDarkMode(prevMode => !prevMode); // This ensures state is correctly toggled based on the previous state
+        document.body.classList.toggle('dark-mode'); // Directly toggle the class without conditional
     };
 
     return (
         <>
             <Navbar logo={logo} />
-            <button onClick={toggleDarkMode} style={{ position: 'fixed', top: '10px', right: '10px' }}>
-                Toggle Dark Mode
+            <button 
+                onClick={toggleDarkMode} 
+                style={{ position: 'fixed', top: '10px', right: '10px' }}
+                className="toggle-button" // Added a class for potential CSS styling
+            >
+                {darkMode ? 'Light Mode' : 'Dark Mode'} // Dynamic text based on the state
             </button>
             <Hero logo={logo} />
             <Tokenomics />
@@ -34,4 +34,5 @@ function App() {
 }
 
 export default App;
+
 
