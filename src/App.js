@@ -22,11 +22,12 @@ function App() {
                 onClick={toggleDarkMode} 
                 style={{ position: 'fixed', top: '10px', right: '10px' }}
                 className="toggle-button" // Added a class for potential CSS styling
+                aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"} // Accessibility label for the button
             >
                 {darkMode ? 'Light Mode' : 'Dark Mode'} // Dynamic text based on the state
             </button>
             <Hero logo={logo} />
-            <Tokenomics />
+            Tokenomics />
             <Buy />
             <Footer logo={logo} />
         </>
