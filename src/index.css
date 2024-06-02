@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Truculenta:opsz,wght@12..72,100..900&display=swap');
 
+/* Basic reset */
 body {
   margin: 0;
   background-color: whitesmoke;
@@ -7,6 +8,33 @@ body {
   font-family: "Truculenta", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition for dark mode */
+}
+
+/* Header, links, and other elements */
+h1, h2, h3, h4, h5, h6 {
+  color: inherit; /* Ensures headers use the current text color */
+}
+
+a {
+  color: blue;
+  text-decoration: none; /* Removes underline from links */
+}
+
+a:hover {
+  text-decoration: underline; /* Adds underline on hover for better visibility */
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  background-color: lightgray;
+  cursor: pointer;
+  transition: background-color 0.3s; /* Smooth transition for buttons */
+}
+
+button:hover {
+  background-color: gray;
 }
 
 /* Dark Mode Styles */
@@ -14,3 +42,12 @@ body.dark-mode {
   background-color: #121212;
   color: white;
 }
+
+.dark-mode a {
+  color: lightblue; /* Changes link color in dark mode for better visibility */
+}
+
+.dark-mode button {
+  background-color: darkgray;
+}
+
