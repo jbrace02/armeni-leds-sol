@@ -29,18 +29,19 @@ button {
   padding: 10px 20px;
   border: none;
   background-color: lightgray;
+  color: black; /* Ensures text color is explicitly set */
   cursor: pointer;
-  transition: background-color 0.3s; /* Smooth transition for buttons */
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition for colors */
 }
 
 button:hover {
   background-color: gray;
+  color: white; /* Ensures text color changes on hover for visibility */
 }
 
-/* Dark Mode Styles */
-body.dark-mode {
-  background-color: #121212;
-  color: white;
+.dark-mode button {
+  background-color: darkgray;
+  color: white; /* Ensures text color in dark mode is white for visibility */
 }
 
 .dark-mode a {
