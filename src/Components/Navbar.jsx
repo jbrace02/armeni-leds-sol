@@ -1,137 +1,131 @@
-nav {
-    display: flex;
-    align-items: center;
-    padding: .25rem 10%;
-    justify-content: space-between;
-    position: sticky;
-    background-color: #fff;
-    top: 0;
-    z-index: 20;
+import "./Navbar.css";
+import { AnimatePresence, motion } from "framer-motion";
+import { Pivot as Hamburger } from "hamburger-react";
+import { useState } from "react";
 
-    --primaryColor: #CE1317;
-}
+const Navbar = ({ logo }) => {
+  // mobile menu state
+  const [isMenuOpen, setMenuOpen] = useState(false);
 
-.logo {
-    width: 70px;
-}
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+      },
+    },
+  };
 
-ul, a {
-    list-style: none;
-    text-decoration: none;
-}
+  const item = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1 },
+  };
 
-.navlist {
-    display: flex;
-    align-items: center;
-    gap: 3rem;
-}
+  return (
+    <nav>
+      {/* logo */}
+      <img src={logo} alt="gif logo" className="logo" />
 
-.navitem {
-    color: var(--primaryColor);
-    transition: all .2s ease-in-out;
-    text-transform: uppercase;
-    font-size: 1.25rem;
-    position: relative;
-}
+      {/* nav list items */}
+      <ul className="navlist">
+        {/* twitter */}
+        <a
+          href="https://x.com/ArmeniLeds_SOL"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <li className="navitem">Twitter(X)</li>
+        </a>
 
-/* hover color #780d0f */
+        {/* telegram */}
+        <a
+          href="https://t.me/armenileds"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <li className="navitem">Telegram</li>
+        </a>
 
-.navitem::after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    transform: scaleX(0);
-    height: 2px;
-    bottom: 0;
-    left: 0;
-    background-color: var(--primaryColor);
-    transform-origin: bottom right;
-    transition: transform 0.25s ease-out;
-}
+        {/* chart */}
+        <a
+          href="https://birdeye.so/token/5AJjM9VRFRDawVcCi7bsT56bMUij3iXcuovH7mxN1Spb?chain=solana"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <li className="navitem">Chart</li>
+        </a>
+      </ul>
 
+      {/* nav buttons */}
+      <ul className="navbuttons">
+        <a
+          href="https://raydium.io/swap/?inputCurrency=sol&outputCurrency=Cc3voFEFTrGmnhnP8x77ncZ6pivG8Kk9ir1t8AhBBaby&fixed=in"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <button className="btn buy_btn">Buy $ARMENI</button>
+        </a>
+      </ul>
 
-.navitem:hover::after {
-    transform: scaleX(1);
-    transform-origin: bottom left;
-}
+      {/* mobile nav */}
+      <Hamburger toggled={isMenuOpen} toggle={setMenuOpen} />
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            className="menu_container"
+            key="menu"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 100 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+          >
+            <motion.ul
+              className="navlist_mobile"
+              variants={container}
+              initial="hidden"
+              animate="show"
+            >
+              <motion.a
+                href="https://x.com/ghostwifcoin"
+                target="_blank"
+                rel="noopener noreferrer"
+                variants={item}
+              >
+                <li className="navitem">Twitter(X)</li>
+              </motion.a>
+              <motion.a
+                href="https://t.co/iubclBM3sH"
+                target="_blank"
+                rel="noopener noreferrer"
+                variants={item}
+              >
+                <li className="navitem">Telegram</li>
+              </motion.a>
+              <motion.a
+                href="https://t.co/6SF27Swspb"
+                target="_blank"
+                rel="noopener noreferrer"
+                variants={item}
+              >
+                <li className="navitem">Chart</li>
+              </motion.a>
+              {/* nav buttons */}
+              <motion.li className="navitem_btn" variants={item}>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://raydium.io/swap/?inputCurrency=sol&outputCurrency=Cc3voFEFTrGmnhnP8x77ncZ6pivG8Kk9ir1t8AhBBaby&fixed=in"
+                >
+                  <button className="btn_mobile">BUY $GIF</button>
+                </a>
+              </motion.li>
+            </motion.ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+};
 
-.navbuttons {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-
-.buy_btn {
-    background-color: var(--primaryColor);
-    color: #fff;
-    border: 0;
-    font-family: inherit;
-    font-weight: 700;
-    border-radius: 10px;
-    padding: .85rem 1.5rem;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all .2s ease-in-out;
-}
-
-.buy_btn:hover {
-    background-color: #780d0f;
-}
-
-.hamburger-react {
-    display: none;
-}
-
-/* responsiveness */
-@media(max-width: 500px) {
-
-    .logo {
-        width: 70px;
-    }
-
-    .navlist, .navbuttons {
-        display: none;
-    }
-
-    .hamburger-react {
-        display: block;
-    }
-
-    .menu_container {
-        background-color: var(--secColor);
-        padding: 0 10%;
-        position: fixed;
-        z-index: 10;
-        height: 100%;
-        inset: 15% 0 0 0;
-    }
-
-    .navlist_mobile {
-        padding: 0;
-    }
-
-    .navitem {
-        color: #fff;
-        font-size: 1.5rem;
-        line-height: 2.5;
-        border-bottom: 1px solid #1B0522;
-        transition: all .2s ease-in-out;
-    }
-
-    .navitem:hover {
-        color: #e2e2e2;
-        border-bottom: 3px solid #1B0522;
-    }
-
-    .btn_mobile {
-        width: 100%;
-        margin-top: 2rem;
-        padding: 1rem 0;
-        border: 0;
-        border-radius: 25px;
-        color: #1B0522;
-        font-size: 1.2rem;
-        font-weight: 600;
-        font-family: inherit;
-    }
-}
+export default Navbar;
