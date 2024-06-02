@@ -58,7 +58,7 @@ body.dark-mode {
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s; // Smooth transition for hover
+    transition: background-color 0.3s; /* Smooth transition for hover */
 }
 
 .toggle-button:hover {
