@@ -1,4 +1,5 @@
-This project is the landing page for ArmeniLeds, a token on the Solana Blockchain. The page provides information about the token, its utilities, and the team behind it. It also features dynamic content and integrates with the Solana blockchain.
+This project is the landing page for ArmeniLeds webpage/app. The page provides information about the project and current build.
+
 
 **Tools and Technologies Used**
 
