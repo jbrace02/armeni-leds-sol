@@ -34,7 +34,7 @@
     "dotenv": "^16.4.5",
     "framer-motion": "^6.5.1",
     "hamburger-react": "^2.5.1",
-    "next": "14.2.16",
+    "next": "^15.0.0",
     "openai": "^4.63.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
@@ -57,3 +57,4 @@
     "react-dom": "18.2.0"
   }
 }
+
