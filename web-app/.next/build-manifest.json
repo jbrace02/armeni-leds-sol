@@ -5,13 +5,13 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/SuCyCWl05_g8cSuNX5y16/_buildManifest.js",
-    "static/SuCyCWl05_g8cSuNX5y16/_ssgManifest.js"
+    "static/C1VsRJL2O5WGcMaZw-W_s/_buildManifest.js",
+    "static/C1VsRJL2O5WGcMaZw-W_s/_ssgManifest.js"
   ],
   "rootMainFiles": [],
   "pages": {
     "/": [
-      "static/chunks/webpack-def2a1d2fffdb779.js",
+      "static/chunks/webpack-2e9d4b30f24c8c41.js",
       "static/chunks/framework-49c6cecf1f6d5795.js",
       "static/chunks/main-e618b1edbb350739.js",
       "static/chunks/597-09da59deced4132c.js",
@@ -20,33 +20,33 @@
       "static/chunks/pages/index-84891dea490d4fd1.js"
     ],
     "/Support": [
-      "static/chunks/webpack-def2a1d2fffdb779.js",
+      "static/chunks/webpack-2e9d4b30f24c8c41.js",
       "static/chunks/framework-49c6cecf1f6d5795.js",
       "static/chunks/main-e618b1edbb350739.js",
       "static/chunks/pages/Support-3effd5f0ff2d7c22.js"
     ],
     "/_app": [
-      "static/chunks/webpack-def2a1d2fffdb779.js",
+      "static/chunks/webpack-2e9d4b30f24c8c41.js",
       "static/chunks/framework-49c6cecf1f6d5795.js",
       "static/chunks/main-e618b1edbb350739.js",
       "static/css/024844bce8eb76d6.css",
       "static/chunks/pages/_app-2098a90b473a394f.js"
     ],
     "/_error": [
-      "static/chunks/webpack-def2a1d2fffdb779.js",
+      "static/chunks/webpack-2e9d4b30f24c8c41.js",
       "static/chunks/framework-49c6cecf1f6d5795.js",
       "static/chunks/main-e618b1edbb350739.js",
       "static/chunks/pages/_error-77823ddac6993d35.js"
     ],
     "/free-alpha": [
-      "static/chunks/webpack-def2a1d2fffdb779.js",
+      "static/chunks/webpack-2e9d4b30f24c8c41.js",
       "static/chunks/framework-49c6cecf1f6d5795.js",
       "static/chunks/main-e618b1edbb350739.js",
       "static/css/3767942eaf2694eb.css",
       "static/chunks/pages/free-alpha-abdd85cd7f6ff6ae.js"
     ],
     "/imei-check": [
-      "static/chunks/webpack-def2a1d2fffdb779.js",
+      "static/chunks/webpack-2e9d4b30f24c8c41.js",
       "static/chunks/framework-49c6cecf1f6d5795.js",
       "static/chunks/main-e618b1edbb350739.js",
       "static/chunks/pages/imei-check-bbc868a352955dcd.js"
