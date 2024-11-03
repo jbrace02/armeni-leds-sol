@@ -1,14 +1,10 @@
 // pages/api/chat.ts
 
-import OpenAI from 'openai';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getQuote } from '../../src/helpers/pricingHelper';
 import { generateShippingLabel, AddressInfo, DeviceInfo } from '../../src/helpers/shippingLabelHelper';
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { connectToDB } from '@/utils/mongodb';
+import { Db } from 'mongodb';
 
 // Valid options for device details
 const validModels = [
@@ -54,7 +50,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { message, threadId, conversationHistory } = req.body;
+    const { sessionId, message, conversationHistory } = req.body;
+
+    if (!sessionId || !message) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const db: Db = await connectToDB();
+    const timestamp = new Date().toISOString();
+
+    // Save the user's message to MongoDB
+    const userMessage = {
+      messageId: Date.now(),
+      from: 'user',
+      content: message,
+      timestamp,
+    };
+
+    await db.collection('conversations').updateOne(
+      { sessionId },
+      { $push: { steps: userMessage } }
+    );
+
     const currentStep = getCurrentStep(conversationHistory);
     let deviceInfo = extractDeviceInfo([
       ...(conversationHistory || []),
@@ -66,7 +83,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Handle conversation steps
     if (currentStep === 'greeting') {
-      responseMessage = 'Hello! I can help you get a quote for your used iPhone. Could you please tell me the model of your iPhone?';
+      responseMessage =
+        'Hello! I can help you get a quote for your used iPhone. Could you please tell me the model of your iPhone?';
       nextStep = 'model';
     } else if (currentStep === 'model') {
       const matchedModel = validModels.find((model) =>
@@ -77,25 +95,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         responseMessage = `Great, you have an ${matchedModel}. Is your iPhone unlocked or locked to a specific carrier? (Unlocked, AT&T, Verizon, T-Mobile, or Sprint)`;
         nextStep = 'carrier';
       } else {
-        responseMessage = 'Sorry, I did not recognize that model. Please specify the exact model of your iPhone (e.g., iPhone 15 Pro Max).';
+        responseMessage =
+          'Sorry, I did not recognize that model. Please specify the exact model of your iPhone (e.g., iPhone 15 Pro Max).';
         nextStep = 'model';
       }
     } else if (currentStep === 'carrier') {
-      const matchedCarrier = validCarriers.find(carrier =>
+      const matchedCarrier = validCarriers.find((carrier) =>
         message.toLowerCase().includes(carrier)
       );
 
       if (matchedCarrier) {
-        deviceInfo.carrier = matchedCarrier.charAt(0).toUpperCase() + matchedCarrier.slice(1);
+        deviceInfo.carrier =
+          matchedCarrier.charAt(0).toUpperCase() + matchedCarrier.slice(1);
         responseMessage = `Perfect! What's the storage capacity of your ${deviceInfo.model}? (64GB, 128GB, 256GB, 512GB, or 1TB)`;
         nextStep = 'storage';
       } else {
-        responseMessage = 'Please specify your carrier (Unlocked, AT&T, Verizon, T-Mobile, or Sprint).';
+        responseMessage =
+          'Please specify your carrier (Unlocked, AT&T, Verizon, T-Mobile, or Sprint).';
         nextStep = 'carrier';
       }
     } else if (currentStep === 'storage') {
       const userStorage = message.toLowerCase().replace(/\s+/g, '');
-      const matchedStorage = storageOptions.find(storage =>
+      const matchedStorage = storageOptions.find((storage) =>
         userStorage.includes(storage)
       );
 
@@ -108,13 +129,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 3. **D**: Bad LCD (spots, bad touch), aftermarket LCDs, etc.`;
         nextStep = 'condition';
       } else {
-        responseMessage = 'Please specify a valid storage capacity (64GB, 128GB, 256GB, 512GB, or 1TB).';
+        responseMessage =
+          'Please specify a valid storage capacity (64GB, 128GB, 256GB, 512GB, or 1TB).';
         nextStep = 'storage';
       }
     } else if (currentStep === 'condition') {
       const userCondition = message.toUpperCase().trim();
       if (['A/B', 'A', 'B', 'C', 'D'].includes(userCondition)) {
-        const conditionCode = ['A', 'B'].includes(userCondition) ? 'A/B' : userCondition;
+        const conditionCode = ['A', 'B'].includes(userCondition)
+          ? 'A/B'
+          : userCondition;
         deviceInfo.condition = conditionCode;
 
         const price = getQuote(
@@ -130,7 +154,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 Would you like to proceed with this offer?`;
           nextStep = 'quote';
         } else {
-          responseMessage = "I couldn't generate a quote for your device. Could we start over to verify the details?";
+          responseMessage =
+            "I couldn't generate a quote for your device. Could we start over to verify the details?";
           nextStep = 'model';
         }
       } else {
@@ -140,22 +165,35 @@ Would you like to proceed with this offer?`;
     } else if (currentStep === 'quote') {
       const lastUserMessage = message.trim().toLowerCase();
       if (/yes|proceed|ok|sure/i.test(lastUserMessage)) {
-        responseMessage = "Great! To generate your shipping label, I'll need your shipping information. What's your full name?";
+        responseMessage =
+          "Great! To generate your shipping label, I'll need your shipping information. What's your full name?";
         nextStep = 'address_name';
       } else {
-        responseMessage = "No problem! Let me know if you have any other questions.";
+        responseMessage =
+          'No problem! Let me know if you have any other questions.';
         nextStep = 'end_conversation';
       }
     } else if (currentStep.startsWith('address_')) {
-      const result = await handleAddressFlow(currentStep, message, conversationHistory, deviceInfo);
+      const result = await handleAddressFlow(
+        currentStep,
+        message,
+        conversationHistory,
+        deviceInfo
+      );
       responseMessage = result.message;
       nextStep = result.nextStep;
+    } else if (currentStep === 'shipping_label') {
+      responseMessage =
+        'Your shipping label has been sent to your email. Thank you!';
+      nextStep = 'end_conversation';
     } else if (currentStep === 'end_conversation') {
-      responseMessage = "Thank you for considering our service. Feel free to reach out if you have more questions.";
+      responseMessage =
+        'Thank you for considering our service. Feel free to reach out if you have more questions.';
       nextStep = 'end_conversation';
     } else {
       // If the current step is not recognized, start over
-      responseMessage = 'Hello! I can help you get a quote for your used iPhone. Could you please tell me the model of your iPhone?';
+      responseMessage =
+        'Hello! I can help you get a quote for your used iPhone. Could you please tell me the model of your iPhone?';
       nextStep = 'model';
     }
 
@@ -166,9 +204,21 @@ Would you like to proceed with this offer?`;
       { role: 'assistant', content: responseMessage },
     ];
 
+    // Save the bot's response to MongoDB
+    const botMessage = {
+      messageId: Date.now() + 1,
+      from: 'bot',
+      content: responseMessage,
+      timestamp: new Date().toISOString(),
+    };
+
+    await db.collection('conversations').updateOne(
+      { sessionId },
+      { $push: { steps: botMessage } }
+    );
+
     return res.status(200).json({
       response: responseMessage,
-      threadId: threadId || null,
       conversationHistory: updatedConversationHistory,
     });
   } catch (error: any) {
@@ -184,36 +234,53 @@ function getCurrentStep(conversationHistory: any[]) {
     return 'greeting';
   }
 
-  const lastAssistantMessage = conversationHistory
-    .filter((msg) => msg.role === 'assistant')
-    .slice(-1)[0]?.content.toLowerCase() || '';
+  const lastAssistantMessage =
+    conversationHistory
+      .filter((msg) => msg.role === 'assistant')
+      .slice(-1)[0]?.content.toLowerCase() || '';
 
   // Check for specific prompts to identify the current step
-  if (lastAssistantMessage.includes('could you please tell me the model of your iphone')) {
+  if (
+    lastAssistantMessage.includes(
+      'could you please tell me the model of your iphone'
+    )
+  ) {
     return 'model';
-  } else if (lastAssistantMessage.includes('is your iphone unlocked or locked to a specific carrier')) {
+  } else if (
+    lastAssistantMessage.includes(
+      'is your iphone unlocked or locked to a specific carrier'
+    )
+  ) {
     return 'carrier';
-  } else if (lastAssistantMessage.includes('what\'s the storage capacity of your')) {
+  } else if (
+    lastAssistantMessage.includes("what's the storage capacity of your")
+  ) {
     return 'storage';
-  } else if (lastAssistantMessage.includes('now, what\'s the condition of your device')) {
+  } else if (
+    lastAssistantMessage.includes("now, what's the condition of your device")
+  ) {
     return 'condition';
-  } else if (lastAssistantMessage.includes('would you like to proceed with this offer')) {
+  } else if (
+    lastAssistantMessage.includes('would you like to proceed with this offer')
+  ) {
     return 'quote';
-  } else if (lastAssistantMessage.includes('what\'s your full name')) {
+  } else if (lastAssistantMessage.includes("what's your full name")) {
     return 'address_name';
-  } else if (lastAssistantMessage.includes('what\'s your street address')) {
+  } else if (lastAssistantMessage.includes("what's your street address")) {
     return 'address_street';
   } else if (lastAssistantMessage.includes('what city are you in')) {
     return 'address_city';
   } else if (lastAssistantMessage.includes('which state')) {
     return 'address_state';
-  } else if (lastAssistantMessage.includes('what\'s your zip code')) {
+  } else if (lastAssistantMessage.includes("what's your zip code")) {
     return 'address_zip';
-  } else if (lastAssistantMessage.includes('what\'s your phone number')) {
+  } else if (lastAssistantMessage.includes("what's your phone number")) {
     return 'address_phone';
-  } else if (lastAssistantMessage.includes('what\'s your email for shipping updates')) {
+  } else if (
+    lastAssistantMessage.includes("what's your email for shipping updates")
+  ) {
     return 'address_email';
-  } else if (lastAssistantMessage.includes('here\'s your shipping label')) {
+  } else if (lastAssistantMessage.includes("here's your shipping label")) {
     return 'shipping_label';
   } else if (lastAssistantMessage.includes('no problem')) {
     return 'end_conversation';
@@ -235,7 +302,9 @@ function extractDeviceInfo(conversationHistory: any[]): DeviceInfo {
       const content = msg.content.toLowerCase();
 
       // Extract model
-      const matchedModel = validModels.find((model) => content.includes(model));
+      const matchedModel = validModels.find((model) =>
+        content.includes(model)
+      );
       if (matchedModel) {
         deviceInfo.model = matchedModel;
       }
@@ -249,7 +318,8 @@ function extractDeviceInfo(conversationHistory: any[]): DeviceInfo {
       // Extract carrier
       for (const carrier of validCarriers) {
         if (content.includes(carrier)) {
-          deviceInfo.carrier = carrier.charAt(0).toUpperCase() + carrier.slice(1);
+          deviceInfo.carrier =
+            carrier.charAt(0).toUpperCase() + carrier.slice(1);
           break;
         }
       }
@@ -285,7 +355,10 @@ async function handleAddressFlow(
   ];
 
   const currentIndex = addressFields.indexOf(currentStep);
-  const nextStep = currentIndex < addressFields.length - 1 ? addressFields[currentIndex + 1] : 'shipping_label';
+  const nextStep =
+    currentIndex < addressFields.length - 1
+      ? addressFields[currentIndex + 1]
+      : 'shipping_label';
 
   // Validate current address field and move to next step
   const validation = validateAddressField(currentStep, message);
@@ -298,7 +371,11 @@ async function handleAddressFlow(
 
   if (currentStep === 'address_email') {
     try {
-      const addressInfo = extractAddressInfo(conversationHistory, message, currentStep);
+      const addressInfo = extractAddressInfo(
+        conversationHistory,
+        message,
+        currentStep
+      );
       if (!validateEmail(message)) {
         return {
           message: 'Please provide a valid email address.',
@@ -323,7 +400,8 @@ We've sent confirmation to ${addressInfo.email}. Let us know once you've shipped
     } catch (error) {
       console.error('Error generating shipping label:', error);
       return {
-        message: 'There was an error generating your shipping label. Please try again.',
+        message:
+          'There was an error generating your shipping label. Please try again.',
         nextStep: currentStep,
       };
     }
@@ -335,7 +413,10 @@ We've sent confirmation to ${addressInfo.email}. Let us know once you've shipped
   };
 }
 
-function validateAddressField(step: string, value: string): { isValid: boolean; message: string } {
+function validateAddressField(
+  step: string,
+  value: string
+): { isValid: boolean; message: string } {
   switch (step) {
     case 'address_zip':
       return {
@@ -397,7 +478,11 @@ function validatePhone(phone: string): boolean {
   return /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(phone);
 }
 
-function extractAddressInfo(conversationHistory: any[], message: string, currentStep: string): AddressInfo {
+function extractAddressInfo(
+  conversationHistory: any[],
+  message: string,
+  currentStep: string
+): AddressInfo {
   const addressInfo: AddressInfo = {
     name: '',
     street1: '',
@@ -461,4 +546,5 @@ function generateErrorMessage(error: string): string {
       return 'Something went wrong. Could you please try again?';
   }
 }
+
 
